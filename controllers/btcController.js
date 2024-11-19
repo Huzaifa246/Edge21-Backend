@@ -82,13 +82,13 @@ exports.getBTCData = async (req, res) => {
         const difference7d = averagePrice7d
             ? ((latestPrice - averagePrice7d) >= 0
                 ? `-${(latestPrice - averagePrice7d).toFixed(2)}`
-                : `+${(latestPrice - averagePrice7d).toFixed(2)}`)
+                : `${(latestPrice - averagePrice7d).toFixed(2)}`)
             : null;
 
         const difference30d = averagePrice30d
             ? ((latestPrice - averagePrice30d) >= 0
                 ? `-${(latestPrice - averagePrice30d).toFixed(2)}`
-                : `+${(latestPrice - averagePrice30d).toFixed(2)}`)
+                : `${(latestPrice - averagePrice30d).toFixed(2)}`)
             : null;
         // Format data with conversion to local currency
         const formattedData = bitcoinData.quotes.map(quoteEntry => {
