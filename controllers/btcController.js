@@ -63,32 +63,37 @@ exports.getBTCData = async (req, res) => {
         if (!bitcoinData) {
             return res.status(404).json({ error: "Bitcoin data not found" });
         }
+        const rawPrices = bitcoinData.quotes.map(quote => parseFloat(quote.quote.USD.price));
+        const latestPrice = rawPrices[rawPrices.length - 1];
 
+        // Calculate the average price for the past 7 days
+        const past7dPrices = rawPrices.slice(-7);
+        const averagePrice7d = past7dPrices.length > 0
+            ? (past7dPrices.reduce((sum, price) => sum + price, 0) / past7dPrices.length).toFixed(2)
+            : null;
+
+        // Calculate the average price for the past 30 days
+        const past30dPrices = rawPrices.slice(-30);
+        const averagePrice30d = past30dPrices.length > 0
+            ? (past30dPrices.reduce((sum, price) => sum + price, 0) / past30dPrices.length).toFixed(2)
+            : null;
+
+        // Calculate dollar differences
+        const difference7d = averagePrice7d
+            ? ((latestPrice - averagePrice7d) >= 0
+                ? `-${(latestPrice - averagePrice7d).toFixed(2)}`
+                : `+${(latestPrice - averagePrice7d).toFixed(2)}`)
+            : null;
+
+        const difference30d = averagePrice30d
+            ? ((latestPrice - averagePrice30d) >= 0
+                ? `-${(latestPrice - averagePrice30d).toFixed(2)}`
+                : `+${(latestPrice - averagePrice30d).toFixed(2)}`)
+            : null;
         // Format data with conversion to local currency
         const formattedData = bitcoinData.quotes.map(quoteEntry => {
             const priceInCurrency = (quoteEntry.quote.USD.price * exchangeRate).toFixed(2);
             const percentChange24h = parseFloat(quoteEntry.quote.USD.percent_change_24h);
-
-            // Calculate the average price for the past 7 days
-            const past7dPrices = bitcoinData.quotes.slice(-7).map(entry => parseFloat(entry.quote.USD.price));
-            const averagePrice7d = past7dPrices.length > 0
-                ? (past7dPrices.reduce((sum, price) => sum + price, 0) / past7dPrices.length).toFixed(2)
-                : null;
-
-            // Calculate the average price for the past 30 days
-            const past30dPrices = bitcoinData.quotes.slice(-30).map(entry => parseFloat(entry.quote.USD.price));
-            const averagePrice30d = past30dPrices.length > 0
-                ? (past30dPrices.reduce((sum, price) => sum + price, 0) / past30dPrices.length).toFixed(2)
-                : null;
-
-            // Compare 7d and 30d averages to the current price
-            const relativeChange7d = averagePrice7d
-                ? (((priceInCurrency - averagePrice7d) / averagePrice7d) * 100).toFixed(2)
-                : null;
-
-            const relativeChange30d = averagePrice30d
-                ? (((priceInCurrency - averagePrice30d) / averagePrice30d) * 100).toFixed(2)
-                : null;
 
             // Calculate the 24-hour change in USD
             const change24hInUsd = (priceInCurrency * (percentChange24h / 100)).toFixed(2);
@@ -104,10 +109,11 @@ exports.getBTCData = async (req, res) => {
                 volume_24h: (quoteEntry.quote.USD.volume_24h * exchangeRate).toFixed(2),
                 currency: currencyCode,
                 change_24h_in_usd: change24hInUsd,
-                average_price_7d: averagePrice7d,
-                average_price_30d: averagePrice30d,
-                relative_change_7d: relativeChange7d,
-                relative_change_30d: relativeChange30d,
+                latestPrice: latestPrice.toFixed(2),
+                averagePrice7d,
+                averagePrice30d,
+                difference7d,
+                difference30d,
             };
         });
 
