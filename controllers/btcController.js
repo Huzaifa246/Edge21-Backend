@@ -52,7 +52,7 @@ exports.getBTCData = async (req, res) => {
         const response = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/historical', {
             params: {
                 symbol: 'BTC',
-                time_start: timeStart,
+                time_start: timeStart,  
                 time_end: now.toISOString(),
                 interval: interval,
             },

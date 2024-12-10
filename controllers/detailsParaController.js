@@ -3,10 +3,10 @@ const DataEntry = require('../models/paraDetailsModel');
 // Store Data
 const storeData = async (req, res) => {
     try {
-        const { heading1, para1, heading2, para2, metatitle, metadescription, tags } = req.body;
+        const { heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags } = req.body;
 
         // Create a new data entry
-        const dataEntry = new DataEntry({ heading1, para1, heading2, para2, metatitle, metadescription, tags });
+        const dataEntry = new DataEntry({ heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags });
         const savedEntry = await dataEntry.save();
 
         res.status(200).json(savedEntry);
@@ -57,18 +57,17 @@ const fetchFilteredData = async (req, res) => {
 
 const fetchDataByDate = async (req, res) => {
     try {
-        const { date } = req.params; // Expected format: 'YYYY-MM-DD'
+        const { date } = req.params;
         console.log("Received date:", date);
 
         // Directly parse the date from the 'YYYY-MM-DD' format
-        const [year, month, day] = date.split('-').map(Number); // [year, month, day] as integers
+        const [year, month, day] = date.split('-').map(Number);
 
         // Ensure the date is valid
         if (isNaN(year) || isNaN(month) || isNaN(day)) {
             return res.status(400).json({ message: 'Invalid date provided.' });
         }
 
-        // Create Date objects for the start and end of the given day (00:00:00 UTC to 23:59:59.999 UTC)
         const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // month - 1 for 0-based index
         const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
 
@@ -96,12 +95,11 @@ const fetchDataByDate = async (req, res) => {
 const updateData = async (req, res) => {
     try {
         const { id } = req.params;
-        const { heading1, para1, heading2, para2, metatitle, metadescription, tags } = req.body;
+        const { heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags } = req.body;
 
-        // Find and update the document
         const updatedEntry = await DataEntry.findByIdAndUpdate(
             id,
-            { heading1, para1, heading2, para2, metatitle, metadescription, tags },
+            { heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags },
             { new: true, runValidators: true }
         );
 

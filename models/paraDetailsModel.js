@@ -6,6 +6,8 @@ const paraDetailsSchema = mongoose.Schema(
     para1: { type: String, required: true },
     heading2: { type: String, required: true },
     para2: { type: String, required: true },
+    heading3: { type: String },
+    para3: { type: String },
     metatitle: { type: String, required: true },
     metadescription: { type: String, required: true },
     tags: { type: String, required: true },
