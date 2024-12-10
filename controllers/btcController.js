@@ -68,28 +68,34 @@ exports.getBTCData = async (req, res) => {
 
         // Calculate the average price for the past 7 days
         const past7dPrices = rawPrices.slice(-7);
-        const averagePrice7d = past7dPrices.length > 0
+
+        const price7dOldest = past7dPrices.length > 0 ? past7dPrices[0] : null;
+
+        const averagePrice7d = price7dOldest.length > 0
             ? (past7dPrices.reduce((sum, price) => sum + price, 0) / past7dPrices.length).toFixed(2)
             : null;
 
         // Calculate the average price for the past 30 days
         const past30dPrices = rawPrices.slice(-30);
+        const price30dOldest = past30dPrices.length > 0 ? past30dPrices[0] : null;
+
         const averagePrice30d = past30dPrices.length > 0
             ? (past30dPrices.reduce((sum, price) => sum + price, 0) / past30dPrices.length).toFixed(2)
             : null;
 
         // Calculate dollar differences
-        const difference7d = averagePrice7d
-            ? ((latestPrice - averagePrice7d) >= 0
-                ? `${(latestPrice - averagePrice7d).toFixed(2)}`
-                : `${(latestPrice - averagePrice7d).toFixed(2)}`)
+        const difference7d = price7dOldest
+            ? ((latestPrice - price7dOldest) >= 0
+                ? `${(latestPrice - price7dOldest).toFixed(2)}`
+                : `${(latestPrice - price7dOldest).toFixed(2)}`)
             : null;
 
-        const difference30d = averagePrice30d
-            ? ((latestPrice - averagePrice30d) >= 0
-                ? `${(latestPrice - averagePrice30d).toFixed(2)}`
-                : `${(latestPrice - averagePrice30d).toFixed(2)}`)
+        const difference30d = price30dOldest
+            ? ((latestPrice - price30dOldest) >= 0
+                ? `${(latestPrice - price30dOldest).toFixed(2)}`
+                : `${(latestPrice - price30dOldest).toFixed(2)}`)
             : null;
+
         // Format data with conversion to local currency
         const formattedData = bitcoinData.quotes.map(quoteEntry => {
             const priceInCurrency = (quoteEntry.quote.USD.price * exchangeRate).toFixed(2);
