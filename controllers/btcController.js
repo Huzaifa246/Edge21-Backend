@@ -5,42 +5,49 @@ const axios = require('axios');
 
 exports.getBTCData = async (req, res) => {
     try {
-        const { timeFrame } = req.query;
+        const { timeFrame, time_start, time_end, interval: queryInterval } = req.query;
+
         const now = new Date();
-        let timeStart;
-        let interval;
+        let timeStart, timeEnd, interval;
 
-        switch (timeFrame) {
-            case '1D':
-                timeStart = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString();
-                interval = 'hourly';
-                break;
-            case '7D':
-                timeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-                interval = 'daily';
-                break;
-            case '1M':
-                timeStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-                interval = 'daily';
-                break;
-            case '3M':
-                timeStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
-                interval = 'daily';
-                break;
-            case '1Y':
-                timeStart = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
-                interval = 'daily';
-                break;
-            case 'YTD':
-                timeStart = new Date(now.getFullYear(), 0, 1).toISOString();
-                interval = 'daily';
-                break;
-            default:
-                timeStart = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
-                interval = 'daily';
-                break;
+        if (time_start && time_end) {
+            timeStart = new Date(time_start).toISOString();
+            timeEnd = new Date(time_end).toISOString();
+            interval = queryInterval || "daily";
         }
-
+        else {
+            timeEnd = now.toISOString();
+            switch (timeFrame) {
+                case '1D':
+                    timeStart = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString();
+                    interval = 'hourly';
+                    break;
+                case '7D':
+                    timeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                    interval = 'daily';
+                    break;
+                case '1M':
+                    timeStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+                    interval = 'daily';
+                    break;
+                case '3M':
+                    timeStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+                    interval = 'daily';
+                    break;
+                case '1Y':
+                    timeStart = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+                    interval = 'daily';
+                    break;
+                case 'YTD':
+                    timeStart = new Date(now.getFullYear(), 0, 1).toISOString();
+                    interval = 'daily';
+                    break;
+                default:
+                    timeStart = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+                    interval = 'daily';
+                    break;
+            }
+        }
         // Get user country code and determine currency
         const countryCode = await getUserCountryCode();
         const currencyCode = getCurrencyFromCountry(countryCode);
@@ -52,8 +59,8 @@ exports.getBTCData = async (req, res) => {
         const response = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/historical', {
             params: {
                 symbol: 'BTC',
-                time_start: timeStart,  
-                time_end: now.toISOString(),
+                time_start: timeStart,
+                time_end: timeEnd,
                 interval: interval,
             },
             headers: { 'X-CMC_PRO_API_KEY': process.env.CMC_API_KEY },
@@ -122,7 +129,6 @@ exports.getBTCData = async (req, res) => {
                 difference30d,
             };
         });
-
         res.json(formattedData);
     } catch (error) {
         console.error("Error fetching BTC data:", error.message);
