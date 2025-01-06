@@ -16,11 +16,22 @@ const storeData = async (req, res) => {
     }
 };
 
+const formatLargeNumber = (num) => {
+    if (num >= 1e9) {
+        return (num / 1e9).toFixed(2) + ' Billion';
+    } else if (num >= 1e6) {
+        return (num / 1e6).toFixed(2) + ' Million';
+    }
+    return num.toFixed(2); // Return the original number if it's less than 1 million
+};
+
 const fetchLatestBitcoinDataAndUpdate = async () => {
     try {
         const now = new Date();
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+
+        const currentTime = now.toLocaleString('en-US', { timeZone: 'UTC', hour12: true, month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
         const response = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
             headers: {
@@ -38,13 +49,11 @@ const fetchLatestBitcoinDataAndUpdate = async () => {
         console.log(bitcoinData, "bitcoinData");
         const price = bitcoinData.quote.USD.price.toFixed(2);
         console.log(price, "price");
-        const marketCap = bitcoinData.quote.USD.market_cap.toFixed(2);
-        const volume24h = bitcoinData.quote.USD.volume_24h.toFixed(2);
-        const percentChange24h = bitcoinData.quote.USD.percent_change_24h.toFixed(2);
+        const marketCap = formatLargeNumber(bitcoinData.quote.USD.market_cap);
+        const volume24h = formatLargeNumber(bitcoinData.quote.USD.volume_24h);
 
-        const updatedMetaTitle = `Bitcoin Price USD $${price} | Live Chart & Trending News`;
-        const updatedMetaDescription = `Current Bitcoin Price: USD $${price}. Last 24 hrs: ${percentChange24h > 0 ? 'up' : 'down'
-            } ${Math.abs(percentChange24h)}% with $${volume24h} in trading volume. Current market cap of $${marketCap}.`;
+        const updatedMetaTitle = `Edge21: Trending Bitcoin News & Insights | Bitcoin Price Today USD $${price}`;
+        const updatedMetaDescription = `Bitcoin Price Today: USD $${price} with a 24-hour trading volume of $${volume24h}. Current market cap of $${marketCap}. Updated on ${currentTime}.`;
 
         const result = { metatitle: updatedMetaTitle, metadescription: updatedMetaDescription, tags: 'Bitcoin' };
 
@@ -113,6 +122,7 @@ const fetchDataByDate = async (req, res) => {
 const updateOrAddDataByDate = async (req, res) => {
     try {
         const { date } = req.params;
+        const { metatitle, metadescription, tags } = req.body;
 
         // Parse the date from 'YYYY-MM-DD' format
         const [year, month, day] = date.split('-').map(Number);
@@ -135,22 +145,22 @@ const updateOrAddDataByDate = async (req, res) => {
             return res.status(500).json({ message: 'Failed to fetch Bitcoin data.' });
         }
 
+        const updatedData = {
+            metatitle: metatitle || bitcoinData.metatitle,
+            metadescription: metadescription || bitcoinData.metadescription,
+            tags: tags || bitcoinData.tags,
+            timestamp: new Date(),
+        };
+
         // Check if data for the given date exists
         const dataForDate = await DataEntry.findOne({
             timestamp: { $gte: startOfDay, $lt: endOfDay }
         });
 
         if (dataForDate) {
-            // Data exists, update the existing entry
-            console.log(`Data found for ${date}. Updating entry.`);
             const updatedEntry = await DataEntry.findByIdAndUpdate(
                 dataForDate._id,
-                {
-                    metatitle: bitcoinData.metatitle,
-                    metadescription: bitcoinData.metadescription,
-                    tags: bitcoinData.tags,
-                    timestamp: new Date()
-                },
+                updatedData,
                 { new: true, runValidators: true }
             );
 
@@ -163,10 +173,7 @@ const updateOrAddDataByDate = async (req, res) => {
             console.log(`No data found for ${date}. Adding a new entry.`);
 
             const newEntry = new DataEntry({
-                timestamp: startOfDay,
-                metatitle: bitcoinData.metatitle,
-                metadescription: bitcoinData.metadescription,
-                tags: bitcoinData.tags
+                ...updatedData,
             });
 
             const savedEntry = await newEntry.save();
