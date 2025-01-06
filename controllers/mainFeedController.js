@@ -31,7 +31,15 @@ const fetchLatestBitcoinDataAndUpdate = async () => {
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
-        const currentTime = now.toLocaleString('en-US', { timeZone: 'UTC', hour12: true, month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const currentTime = now.toLocaleString('en-CA', {
+            timeZone: 'UTC',
+            hour12: true,
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
 
         const response = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
             headers: {
@@ -188,8 +196,6 @@ const updateOrAddDataByDate = async (req, res) => {
         res.status(500).json({ message: 'Error updating or adding data', error: error.message });
     }
 };
-
-
 const updateData = async (req, res) => {
     try {
         const { id } = req.params;
