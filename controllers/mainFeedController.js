@@ -24,6 +24,9 @@ const formatLargeNumber = (num) => {
     }
     return num.toFixed(2); // Return the original number if it's less than 1 million
 };
+const convertToLocalTime = (timestamp) => {
+    return new Date(timestamp).toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
+};
 
 const fetchLatestBitcoinDataAndUpdate = async () => {
     try {
@@ -31,8 +34,8 @@ const fetchLatestBitcoinDataAndUpdate = async () => {
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
-        const currentTime = now.toLocaleString('en-CA', {
-            timeZone: 'UTC',
+        const currentTime = now.toLocaleString('en-US', {
+            timeZone: 'Asia/Karachi',
             hour12: true,
             month: 'short',
             day: '2-digit',
@@ -40,6 +43,8 @@ const fetchLatestBitcoinDataAndUpdate = async () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+
+        // console.log(currentTime, "currentTime");
 
         const response = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
             headers: {
@@ -74,7 +79,7 @@ const fetchLatestBitcoinDataAndUpdate = async () => {
                 metatitle: updatedMetaTitle,
                 metadescription: updatedMetaDescription,
                 tags: result.tags,
-                currentTime,
+                timestamp: new Date(),
             },
             { upsert: true, new: true } // Create entry if it doesn't exist
         );
@@ -165,37 +170,60 @@ const updateOrAddDataByDate = async (req, res) => {
             timestamp: { $gte: startOfDay, $lt: endOfDay }
         });
 
+        let responseEntry;
         if (dataForDate) {
-            const updatedEntry = await DataEntry.findByIdAndUpdate(
-                dataForDate._id,
-                updatedData,
-                { new: true, runValidators: true }
-            );
-
-            return res.status(200).json({
-                message: `Data for ${date} updated successfully.`,
-                data: updatedEntry
-            });
+            responseEntry = await DataEntry.findByIdAndUpdate(dataForDate._id, updatedData, { new: true });
         } else {
-            // No data exists for the given date, add a new entry
-            console.log(`No data found for ${date}. Adding a new entry.`);
-
-            const newEntry = new DataEntry({
-                ...updatedData,
-            });
-
-            const savedEntry = await newEntry.save();
-
-            return res.status(201).json({
-                message: `No data found for ${date}. New entry added successfully.`,
-                data: savedEntry
-            });
+            const newEntry = new DataEntry(updatedData);
+            responseEntry = await newEntry.save();
         }
+
+        // Convert timestamps to local timezone for response
+        responseEntry = {
+            ...responseEntry.toObject(),
+            timestamp: convertToLocalTime(responseEntry.timestamp),
+            createdAt: convertToLocalTime(responseEntry.createdAt),
+            updatedAt: convertToLocalTime(responseEntry.updatedAt)
+        };
+
+        res.status(200).json(responseEntry);
     } catch (error) {
         console.error('Error updating or adding data by date:', error);
         res.status(500).json({ message: 'Error updating or adding data', error: error.message });
     }
 };
+//         if (dataForDate) {
+//             const updatedEntry = await DataEntry.findByIdAndUpdate(
+//                 dataForDate._id,
+//                 updatedData,
+//                 { new: true, runValidators: true }
+//             );
+
+//             return res.status(200).json({
+//                 message: `Data for ${date} updated successfully.`,
+//                 data: updatedEntry
+//             });
+//         } else {
+//             // No data exists for the given date, add a new entry
+//             console.log(`No data found for ${date}. Adding a new entry.`);
+
+//             const newEntry = new DataEntry({
+//                 ...updatedData,
+//             });
+//             const savedEntry = await newEntry.save();
+
+//             return res.status(201).json({
+//                 message: `No data found for ${date}. New entry added successfully.`,
+//                 data: savedEntry
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error updating or adding data by date:', error);
+//         res.status(500).json({ message: 'Error updating or adding data', error: error.message });
+//     }
+// };
+
+
 const updateData = async (req, res) => {
     try {
         const { id } = req.params;
