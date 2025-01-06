@@ -74,7 +74,7 @@ const fetchLatestBitcoinDataAndUpdate = async () => {
                 metatitle: updatedMetaTitle,
                 metadescription: updatedMetaDescription,
                 tags: result.tags,
-                timestamp: new Date() // Ensure timestamp is updated to the current time
+                currentTime,
             },
             { upsert: true, new: true } // Create entry if it doesn't exist
         );
