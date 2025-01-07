@@ -45,7 +45,8 @@ const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
         const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr', {
             params: { symbol: 'BTCUSDT' },
         });
-
+        console.log("Binance API response:", response.data);
+        
         const bitcoinData = response.data;
         const price = parseFloat(bitcoinData.lastPrice).toFixed(2);
         const volume24h = formatLargeNumber(parseFloat(bitcoinData.quoteVolume));
