@@ -27,62 +27,6 @@ const formatLargeNumber = (num) => {
 const convertToLocalTime = (timestamp) => {
     return new Date(timestamp).toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
 };
-// const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
-//     try {
-//         const now = new Date();
-
-//         const currentTime = now.toLocaleString('en-US', {
-//             timeZone: 'Asia/Karachi',
-//             hour12: true,
-//             month: 'short',
-//             day: '2-digit',
-//             year: 'numeric',
-//             hour: '2-digit',
-//             minute: '2-digit'
-//         });
-
-//         const response = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
-//             headers: {
-//                 'X-CMC_PRO_API_KEY': process.env.CMC_API_KEY
-//             },
-//             params: {
-//                 start: 1,
-//                 limit: 1,
-//                 convert: 'USD'
-//             }
-//         });
-
-//         const bitcoinData = response.data.data[0];
-//         const price = bitcoinData.quote.USD.price.toFixed(2);
-//         const marketCap = formatLargeNumber(bitcoinData.quote.USD.market_cap);
-//         const volume24h = formatLargeNumber(bitcoinData.quote.USD.volume_24h);
-
-//         const updatedMetaTitle = `Edge21: Trending Bitcoin News & Insights | Bitcoin Price Today USD $${price}`;
-//         const updatedMetaDescription = `Bitcoin Price Today: USD $${price} with a 24-hour trading volume of $${volume24h}. Current market cap of $${marketCap}. Updated on ${currentTime}.`;
-
-//         const result = { metatitle: updatedMetaTitle, metadescription: updatedMetaDescription, tags: 'Bitcoin' };
-
-//         // Update the latest entry
-//         const updatedEntry = await DataEntry.findOneAndUpdate(
-//             {
-//                 timestamp: { $gte: startOfDay, $lt: endOfDay }
-//             },
-//             {
-//                 metatitle: updatedMetaTitle,
-//                 metadescription: updatedMetaDescription,
-//                 tags: result.tags,
-//                 timestamp: new Date(),
-//             },
-//             { upsert: true, new: true } // Create entry if it doesn't exist
-//         );
-
-//         console.log('Successfully updated or created entry:', updatedEntry);
-//         return result;
-//     } catch (error) {
-//         console.error('Error fetching Bitcoin data or updating database:', error.message);
-//     }
-// };
-
 const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
     try {
         const now = new Date();
