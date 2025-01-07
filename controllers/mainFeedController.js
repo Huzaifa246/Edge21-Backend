@@ -182,6 +182,20 @@ const updateOrAddDataByDate = async (req, res) => {
     }
 };
 
+const testBinance = async (req, res) => {
+    console.log('Received request for /test-binance');
+    try {
+        const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr', {
+            params: { symbol: 'BTCUSDT' },
+        });
+        console.log('Binance API Response:', response.data);
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching Binance data:', error.message);
+        res.status(500).json({ message: 'Failed to fetch Binance data', error: error.message });
+    }
+};
+
 const deleteData = async (req, res) => {
     try {
         const { id } = req.params;
@@ -199,4 +213,5 @@ const deleteData = async (req, res) => {
 };
 
 
-module.exports = { storeData, deleteData, fetchDataByDate, updateOrAddDataByDate, fetchLatestBitcoinDataAndUpdate };
+
+module.exports = { testBinance, storeData, deleteData, fetchDataByDate, updateOrAddDataByDate, fetchLatestBitcoinDataAndUpdate };
