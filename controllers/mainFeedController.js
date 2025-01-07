@@ -27,6 +27,56 @@ const formatLargeNumber = (num) => {
 const convertToLocalTime = (timestamp) => {
     return new Date(timestamp).toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
 };
+// const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
+//     try {
+//         const now = new Date();
+
+//         const currentTime = now.toLocaleString('en-US', {
+//             timeZone: 'Asia/Karachi',
+//             hour12: true,
+//             month: 'short',
+//             day: '2-digit',
+//             year: 'numeric',
+//             hour: '2-digit',
+//             minute: '2-digit',
+//         });
+
+//         // Fetch Bitcoin data from Binance API
+//         const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr', {
+//             params: { symbol: 'BTCUSDT' },
+//         });
+//         console.log("Binance API response:", response.data);
+        
+//         const bitcoinData = response.data;
+//         const price = parseFloat(bitcoinData.lastPrice).toFixed(2);
+//         const volume24h = formatLargeNumber(parseFloat(bitcoinData.quoteVolume));
+
+//         const updatedMetaTitle = `Edge21: Trending Bitcoin News & Insights | Bitcoin Price Today USD $${price}`;
+//         const updatedMetaDescription = `Bitcoin Price Today: USD $${price} with a 24-hour trading volume of $${volume24h}. Updated on ${currentTime}.`;
+
+//         const result = { metatitle: updatedMetaTitle, metadescription: updatedMetaDescription, tags: 'Bitcoin' };
+
+//         // Update the latest entry
+//         const updatedEntry = await DataEntry.findOneAndUpdate(
+//             {
+//                 timestamp: { $gte: startOfDay, $lt: endOfDay },
+//             },
+//             {
+//                 metatitle: updatedMetaTitle,
+//                 metadescription: updatedMetaDescription,
+//                 tags: result.tags,
+//                 timestamp: new Date(),
+//             },
+//             { upsert: true, new: true }
+//         );
+
+//         console.log('Successfully updated or created entry:', updatedEntry);
+//         return result;
+//     } catch (error) {
+//         console.error('Error fetching Bitcoin data or updating database:', error.message);
+//     }
+// };
+
 const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
     try {
         const now = new Date();
@@ -41,18 +91,27 @@ const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
             minute: '2-digit',
         });
 
-        // Fetch Bitcoin data from Binance API
-        const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr', {
-            params: { symbol: 'BTCUSDT' },
-        });
-        console.log("Binance API response:", response.data);
-        
-        const bitcoinData = response.data;
-        const price = parseFloat(bitcoinData.lastPrice).toFixed(2);
-        const volume24h = formatLargeNumber(parseFloat(bitcoinData.quoteVolume));
+        // Fetch Bitcoin data from CoinGecko API
+        const response = await axios.get(
+            'https://api.coingecko.com/api/v3/simple/price',
+            {
+                params: {
+                    ids: 'bitcoin',
+                    vs_currencies: 'usd',
+                    include_market_cap: true,
+                    include_24hr_vol: true,
+                },
+            }
+        );
+        console.log("CoinGecko API response:", response.data);
+
+        const bitcoinData = response.data.bitcoin;
+        const price = bitcoinData.usd.toFixed(2);
+        const marketCap = formatLargeNumber(bitcoinData.usd_market_cap);
+        const volume24h = formatLargeNumber(bitcoinData.usd_24h_vol);
 
         const updatedMetaTitle = `Edge21: Trending Bitcoin News & Insights | Bitcoin Price Today USD $${price}`;
-        const updatedMetaDescription = `Bitcoin Price Today: USD $${price} with a 24-hour trading volume of $${volume24h}. Updated on ${currentTime}.`;
+        const updatedMetaDescription = `Bitcoin Price Today: USD $${price} with a 24-hour trading volume of $${volume24h}. Current market cap of $${marketCap}. Updated on ${currentTime}.`;
 
         const result = { metatitle: updatedMetaTitle, metadescription: updatedMetaDescription, tags: 'Bitcoin' };
 
@@ -74,6 +133,7 @@ const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
         return result;
     } catch (error) {
         console.error('Error fetching Bitcoin data or updating database:', error.message);
+        throw new Error('Failed to fetch or update Bitcoin data.');
     }
 };
 
