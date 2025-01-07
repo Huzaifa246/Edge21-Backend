@@ -1,4 +1,4 @@
-const DataEntry = require('../models/mainFeedModel');
+const DataEntry = require('../models/btcpriceModel');
 const axios = require('axios');
 const { convertToLocalTime, formatLargeNumber } = require('../utils/reuseableFunctions');
 
@@ -15,7 +15,7 @@ const storeData = async (req, res) => {
         res.status(500).json({ message: 'Error storing data', error: error.message });
     }
 };
-const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
+const fetchLatestBitcoinOffPageAndUpdate = async (startOfDay, endOfDay) => {
     try {
         const now = new Date();
 
@@ -48,8 +48,8 @@ const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
         const marketCap = formatLargeNumber(bitcoinData.usd_market_cap);
         const volume24h = formatLargeNumber(bitcoinData.usd_24h_vol);
 
-        const updatedMetaTitle = `Edge21: Trending Bitcoin News & Insights | Bitcoin Price Today USD $${price}`;
-        const updatedMetaDescription = `Bitcoin Price Today: USD $${price} with a 24-hour trading volume of $${volume24h}. Current market cap of $${marketCap}. Updated on ${currentTime}.`;
+        const updatedMetaTitle = `Bitcoin Price Today USD $${price} | Live Chart & Trending News`;
+        const updatedMetaDescription = `Bitcoin Price Today: USD $${price}. Last 24 hrs: up 0.4% by $319 with $${volume24h} in trading volume. Current market cap of $${marketCap}. Updated on ${currentTime}.`;
 
         const result = { metatitle: updatedMetaTitle, metadescription: updatedMetaDescription, tags: 'Bitcoin' };
 
@@ -67,7 +67,6 @@ const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
             { upsert: true, new: true }
         );
 
-        console.log('Successfully updated or created entry:', updatedEntry);
         return result;
     } catch (error) {
         console.error('Error fetching Bitcoin data or updating database:', error.message);
@@ -129,11 +128,8 @@ const updateOrAddDataByDate = async (req, res) => {
         const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
         const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
 
-        console.log("Start of Day (UTC):", startOfDay);
-        console.log("End of Day (UTC):", endOfDay);
-
         // Fetch existing Bitcoin data
-        const bitcoinData = await fetchLatestBitcoinDataAndUpdate(startOfDay, endOfDay);
+        const bitcoinData = await fetchLatestBitcoinOffPageAndUpdate(startOfDay, endOfDay);
 
         if (!bitcoinData) {
             return res.status(500).json({ message: 'Failed to fetch Bitcoin data.' });
@@ -198,4 +194,4 @@ const deleteData = async (req, res) => {
 
 
 
-module.exports = { storeData, deleteData, fetchDataByDate, updateOrAddDataByDate, fetchLatestBitcoinDataAndUpdate };
+module.exports = { storeData, deleteData, fetchDataByDate, updateOrAddDataByDate, fetchLatestBitcoinOffPageAndUpdate };
