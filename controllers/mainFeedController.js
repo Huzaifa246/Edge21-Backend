@@ -44,9 +44,9 @@ const fetchLatestBitcoinDataAndUpdate = async (startOfDay, endOfDay) => {
         console.log("CoinGecko API response:", response.data);
 
         const bitcoinData = response.data.bitcoin;
-        const price = bitcoinData.usd.toFixed(2);
-        const marketCap = formatLargeNumber(bitcoinData.usd_market_cap);
-        const volume24h = formatLargeNumber(bitcoinData.usd_24h_vol);
+        const price = bitcoinData.usd.toFixed(0);
+        const marketCap = formatLargeNumber(bitcoinData.usd_market_cap.toFixed(0));
+        const volume24h = formatLargeNumber(bitcoinData.usd_24h_vol.toFixed(0));
 
         const updatedMetaTitle = `Edge21: Trending Bitcoin News & Insights | Bitcoin Price Today USD $${price}`;
         const updatedMetaDescription = `Bitcoin Price Today: USD $${price} with a 24-hour trading volume of $${volume24h}. Current market cap of $${marketCap}. Updated on ${currentTime}.`;

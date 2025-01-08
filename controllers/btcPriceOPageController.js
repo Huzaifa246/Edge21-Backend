@@ -44,12 +44,12 @@ const fetchLatestBitcoinOffPageAndUpdate = async (startOfDay, endOfDay) => {
         console.log("CoinGecko API response:", response.data);
 
         const bitcoinData = response.data.bitcoin;
-        const price = bitcoinData.usd.toFixed(2);
-        const marketCap = formatLargeNumber(bitcoinData.usd_market_cap);
-        const volume24h = formatLargeNumber(bitcoinData.usd_24h_vol);
+        const price = bitcoinData.usd.toFixed(0);
+        const marketCap = formatLargeNumber(bitcoinData.usd_market_cap.toFixed(0));
+        const volume24h = formatLargeNumber(bitcoinData.usd_24h_vol.toFixed(0));
 
         const updatedMetaTitle = `Bitcoin Price Today USD $${price} | Live Chart & Trending News`;
-        const updatedMetaDescription = `Bitcoin Price Today: USD $${price}. Last 24 hrs: up 0.4% by $319 with $${volume24h} in trading volume. Current market cap of $${marketCap}. Updated on ${currentTime}.`;
+        const updatedMetaDescription = `Bitcoin Price Today: USD $${price}. Last 24 hrs: trading volume is $${volume24h}. Current market cap of $${marketCap}. Updated on ${currentTime}.`;
 
         const result = { metatitle: updatedMetaTitle, metadescription: updatedMetaDescription, tags: 'Bitcoin' };
 
