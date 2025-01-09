@@ -7,6 +7,7 @@ const detailsParaRoutes = require('./routes/detailsParaRoutes');
 const feedRoutes = require('./routes/mainFeedRoutes');
 const btcOffRoutes = require('./routes/btcOffPageRoutes');
 const connectDB = require('./config/db');
+const redis = require('./redis');
 // const cron = require('node-cron');
 // const axios = require('axios');
 
