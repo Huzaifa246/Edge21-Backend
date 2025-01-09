@@ -3,10 +3,10 @@ const DataEntry = require('../models/paraDetailsModel');
 // Store Data
 const storeData = async (req, res) => {
     try {
-        const { heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags } = req.body;
+        const { heading1, para1, heading2, para2, heading3, para3 } = req.body;
 
         // Create a new data entry
-        const dataEntry = new DataEntry({ heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags });
+        const dataEntry = new DataEntry({ heading1, para1, heading2, para2, heading3, para3 });
         const savedEntry = await dataEntry.save();
 
         res.status(200).json(savedEntry);
@@ -95,11 +95,11 @@ const fetchDataByDate = async (req, res) => {
 const updateData = async (req, res) => {
     try {
         const { id } = req.params;
-        const { heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags } = req.body;
+        const { heading1, para1, heading2, para2, heading3, para3 } = req.body;
 
         const updatedEntry = await DataEntry.findByIdAndUpdate(
             id,
-            { heading1, para1, heading2, para2, heading3, para3, metatitle, metadescription, tags },
+            { heading1, para1, heading2, para2, heading3, para3 },
             { new: true, runValidators: true }
         );
 
