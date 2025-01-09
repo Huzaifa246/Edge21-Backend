@@ -6,12 +6,6 @@
        "use": "@vercel/node"
      }
    ],
-   "crons": [
-    {
-      "path": "/api/scheduled-task.js",
-      "schedule": "0 * * * *"
-    }
-  ],
    "routes": [
      {
        "src": "/(.*)",
