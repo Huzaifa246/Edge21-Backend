@@ -2,14 +2,13 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const cron = require('node-cron');
+const axios = require('axios');
 const btcRoutes = require('./routes/btcRoutes');
 const btcStoreRoutes = require('./routes/btcStoreRoutes');
 const detailsParaRoutes = require('./routes/detailsParaRoutes');
 const feedRoutes = require('./routes/mainFeedRoutes');
 const btcOffRoutes = require('./routes/btcOffPageRoutes');
 const connectDB = require('./config/db');
-const { fetchLatestBitcoinDataAndUpdate } = require('./controllers/mainFeedController');
-const { fetchLatestBitcoinOffPageAndUpdate } = require('./controllers/btcPriceOPageController');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,33 +24,25 @@ app.use('/api/data', feedRoutes);
 app.use('/api/data', btcOffRoutes);
 
 cron.schedule('0 * * * *', async () => {
-    console.log('Running hourly update for Bitcoin data...');
+    console.log('Running 1-minute update for Bitcoin data...');
     try {
-        // Calculate start and end of the current day
-        const now = new Date();
-        const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
-        
-        // Fetch and update Bitcoin data
-        const result = await fetchLatestBitcoinDataAndUpdate(startOfDay, endOfDay);
-        console.log('Cron Job: Successfully updated Bitcoin data:', result);
+        const currentDate = new Date().toISOString().split('T')[0]; // Get the current date in YYYY-MM-DD format
+
+        // Call the API to update Bitcoin price by date
+        const btcPriceUpdateResponse = await axios.put(
+            `https://edge21-backend.vercel.app/api/data/updateBtcPriceByDate/${currentDate}`
+        );
+
+        console.log('Bitcoin Price Update Response:', btcPriceUpdateResponse.data);
+
+        // Call the API to update Feed by date (if needed)
+        const feedUpdateResponse = await axios.put(
+            `https://edge21-backend.vercel.app/api/data/updateFeedByDate/${currentDate}`
+        );
+
+        console.log('Feed Update Response:', feedUpdateResponse.data);
     } catch (error) {
-        console.error('Error during hourly update:', error.message);
-    }
-});
-cron.schedule('0 * * * *', async () => {
-    console.log('Running hourly update for Btc OFF Page data...');
-    try {
-        // Calculate start and end of the current day
-        const now = new Date();
-        const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
-        
-        // Fetch and update Bitcoin data
-        const result = await fetchLatestBitcoinOffPageAndUpdate(startOfDay, endOfDay);
-        console.log('Cron Job: Successfully updated Bitcoin data:', result);
-    } catch (error) {
-        console.error('Error during hourly update:', error.message);
+        console.error('Error during 1-minute update:', error.message);
     }
 });
 
