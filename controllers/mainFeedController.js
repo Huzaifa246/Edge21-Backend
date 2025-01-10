@@ -116,7 +116,10 @@ const fetchDataByDate = async (req, res) => {
 
 const updateOrAddDataByDate = async (req, res) => {
     try {
-        const { date } = req.params;
+        let { date } = req.params;
+        if (!date) {
+            date = new Date().toISOString().split('T')[0];
+        }
         const { metatitle, metadescription, tags } = req.body;
 
         const [year, month, day] = date.split('-').map(Number);
